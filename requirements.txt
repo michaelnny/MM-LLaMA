@@ -1,0 +1,13 @@
+torch==2.1.2
+torchaudio==2.1.2
+torchvision==0.16.2
+pytorchvideo==0.1.5
+sentencepiece # tokenizer
+tqdm
+numpy
+bitsandbytes==0.41.3 # 4bit quantization
+tensorboard
+
+# Required by ImageBind
+einops==0.7.0
+eva-decord==0.6.1
