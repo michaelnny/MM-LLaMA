@@ -62,21 +62,21 @@ def main(
         # [
         #     {'role': 'user', 'content': 'Explain moon landing to a 8 years old kid.'},
         # ],
-        # [
-        #     {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/dog_image.jpg'}},
-        # ],
-        # [
-        #     {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/car_image.jpg'}},
-        # ],
-        # [
-        #     {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/bird_image.jpg'}},
-        # ],
+        [
+            {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/dog_image.jpg'}},
+        ],
+        [
+            {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/car_image.jpg'}},
+        ],
+        [
+            {'role': 'user', 'content': 'Describe what is in the picture.', 'media': {'type': 'image', 'file_path': '.assets/bird_image.jpg'}},
+        ],
         [
             {'role': 'user', 'content': 'Describe what is in the video.', 'media': {'type': 'video', 'file_path': '.assets/car_video.mp4'}},
         ],
-        # [
-        #     {'role': 'user', 'content': 'Describe what is in the video.', 'media': {'type': 'video', 'file_path': '.assets/dog_video.mp4'}},
-        # ],
+        [
+            {'role': 'user', 'content': 'Describe what is in the video.', 'media': {'type': 'video', 'file_path': '.assets/dog_video.mp4'}},
+        ],
     ]
 
     imagebind_model = imagebind_huge(imagebind_ckpt_path)

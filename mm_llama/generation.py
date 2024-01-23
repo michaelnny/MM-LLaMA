@@ -58,9 +58,9 @@ class Llama:
 
         torch.manual_seed(seed)
 
-        # Set these causes ImageBind model fail when processing videos,
-        torch.set_default_device(device)
-        torch.set_default_dtype(torch.float16)
+        # Set these causes ImageBind model fail when processing videos
+        # torch.set_default_device(device)
+        # torch.set_default_dtype(torch.float16)
 
         t0 = time.time()
         checkpoint = torch.load(ckpt_path, map_location='cpu')
@@ -93,19 +93,19 @@ class Llama:
 
         for params in model.parameters():
             params.requires_grad = False
+        model = model.eval()
 
+        # For support running ImageBind model and it's processors, since we can't set default device and tensor type
         if torch.version.cuda and torch.cuda.is_bf16_supported():
             compute_dtype = torch.bfloat16
         else:
             compute_dtype = torch.float16
-
         for name, module in model.named_modules():
             if 'norm' in name:  # for better performance, always use full precision for normalization layers
                 module = module.to(dtype=torch.float32)
             else:
                 module = module.to(dtype=compute_dtype)
-
-        model = model.eval().to(device)
+        model = model.to(device)
 
         return Llama(model, tokenizer)
 
