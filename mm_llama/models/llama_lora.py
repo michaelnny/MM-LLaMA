@@ -218,10 +218,3 @@ class Transformer(llama.Transformer):
 
         # Multi-modal LLM alignment projection layer, note the output embed size from ImageBind is always 1024
         self.llm_align_proj = nn.Linear(1024, params.dim, bias=False)
-        self._init_weights()
-
-    def _init_weights(self):
-        _module = self.llm_align_proj
-        torch.nn.init.normal_(_module.weight, mean=0.0, std=0.02)
-        if _module.bias is not None:
-            torch.nn.init.zeros_(_module.bias)

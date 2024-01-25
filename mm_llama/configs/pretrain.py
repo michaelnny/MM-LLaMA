@@ -29,7 +29,7 @@ class config:
     full_pad: bool = False
 
     # training and validation loops
-    num_epochs: int = 2
+    num_epochs: int = 3
     train_batch_size: int = 8
     # accumulate gradients, where for step, the batch size is = train_batch_size x gradient_accum_steps
     gradient_accum_steps: int = 16

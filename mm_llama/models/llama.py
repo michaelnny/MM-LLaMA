@@ -207,7 +207,7 @@ class FeedForward(nn.Module):
         dim: int,
         hidden_dim: int,
         multiple_of: int,
-        ffn_dim_multiplier: Optional[float],
+        ffn_dim_multiplier: Optional[float] = None,
         resid_dropout: Optional[float] = 0.0,
     ):
         super().__init__()
