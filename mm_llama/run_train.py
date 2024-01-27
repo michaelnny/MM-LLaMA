@@ -338,7 +338,6 @@ def main(args: RunArgsType):
         max_seq_len=args.max_seq_len,
         embed_dropout=args.embed_dropout,
         attn_dropout=args.attn_dropout,
-        resid_dropout=args.resid_dropout,
         gradient_checkpointing=args.gradient_checkpointing,
     )
 
@@ -359,8 +358,8 @@ def main(args: RunArgsType):
         else:
             module = module.to(dtype=compute_dtype)
 
-    # make sure LLM alignment layer is triable
-    additional_layers = ['llm_align_proj']
+    # make sure LLM alignment layers are triable
+    additional_layers = ['llm_align_proj', 'llm_align_norm']
     mark_only_lora_as_trainable(model, args.train_bias, additional_layers)
 
     # This is where the weights quantization happens

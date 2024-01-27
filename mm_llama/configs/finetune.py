@@ -40,14 +40,14 @@ class config:
     # accumulate gradients, where for step, the batch size is = train_batch_size x gradient_accum_steps
     gradient_accum_steps: int = 16
     loss_scale: float = 1.0  # scale loss to account for gradient accumulation, we don't want to use a very small scale
-    val_interval: int = 200
+    val_interval: int = 400
     val_batch_size: int = 30
     val_steps: int = 40
     log_interval: int = 5  # log training metrics (loss, accuracy)
-    ckpt_interval: int = 200  # save model checkpoints every N training steps
+    ckpt_interval: int = 400  # save model checkpoints every N training steps
 
     # LoRA configuration
-    lora_r: int = 32
+    lora_r: int = 64
     lora_scaling: float = 1.0  # set the LoRA scaling, by default 1.0 no scaling
     lora_dropout: float = 0.0
 
@@ -57,24 +57,24 @@ class config:
     lora_attn_value: bool = True  # train Attention value layer
     lora_attn_proj: bool = False  # train Attention projection layer
     lora_attn_mlp: bool = False  # train Attention MLP block
-    lora_lm_head: bool = True  # train model output head
+    lora_lm_head: bool = False  # train model output head
 
     train_bias: str = 'none'  # none, lora_only, all
 
     # Quantization
     quant_4bit: bool = False  # quantize frozen linear layer
     quant_lora_4bit: bool = False  # quantize LoRA linear layer
-    quant_4bit_double: bool = True  # double quantize
+    quant_4bit_double: bool = False  # double quantize
     quant_4bit_type: str = 'nf4'  # only supports 'fp4' or 'nf4'
 
     # learning rate
-    init_lr: float = 3e-5  # initial learning rate
-    max_lr: float = 3e-4  # max learning rate after warm up
-    min_lr: float = 3e-5  # min learning rate after decay
+    init_lr: float = 5e-5  # initial learning rate
+    max_lr: float = 5e-4  # max learning rate after warm up
+    min_lr: float = 1e-4  # min learning rate after decay
     warmup_ratio: float = 0.015
 
     # prompt is less important than completion
-    prompt_loss_weight: float = 0.1  # we have multiple-turns for a single sample, which mostly are packed into the prompt tokens
+    prompt_loss_weight: float = 0.05  # we have multiple-turns for a single sample, which mostly are packed into the prompt tokens
     completion_loss_weight: float = 1.0
 
     # AdamW optimizer
@@ -88,7 +88,6 @@ class config:
     # dropout regularization
     embed_dropout: float = 0.0
     attn_dropout: float = 0.0
-    resid_dropout: float = 0.0
 
     gradient_checkpointing: bool = False
     mixed_precision: bool = True  # default to BF16, but if no native GPU support detected, will use FP16.

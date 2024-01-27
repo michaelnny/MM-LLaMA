@@ -236,8 +236,8 @@ def build_prompt_completion(
 
 
 if __name__ == '__main__':
-    tokenizer = Tokenizer(model_path='./meta_checkpoints/LLaMA-2/tokenizer.model')
-    imagebind_model = imagebind_huge('./checkpoints/imagebind/imagebind_huge.pth')
+    tokenizer = Tokenizer(model_path='/home/michael/models/meta_llama2/tokenizer.model')
+    imagebind_model = imagebind_huge('/home/michael/models/ImageBind/imagebind_huge.pth')
     example_dialogs = [
         [
             {'role': 'user', 'content': 'Solve 1+37.'},

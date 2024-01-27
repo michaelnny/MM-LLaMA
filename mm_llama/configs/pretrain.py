@@ -4,12 +4,12 @@
 
 
 from typing import Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 
 @dataclass
 class config:
-    """Pre-training LLM alignment projection layer"""
+    """Pre-training MM-to-LLM alignment projection layers"""
 
     # model type definition, the details (number of layers, heads etc.) are defined in model.py
     model_type: str = '7B'  # 7B, 13B, 70B
@@ -61,10 +61,10 @@ class config:
     quant_4bit_type: str = 'nf4'  # only supports 'fp4' or 'nf4'
 
     # learning rate
-    init_lr: float = 2e-5  # initial learning rate
-    max_lr: float = 2e-4  # max learning rate after warm up
-    min_lr: float = 2e-5  # min learning rate after decay
-    warmup_ratio: float = 0.015
+    init_lr: float = 5e-4  # initial learning rate
+    max_lr: float = 5e-4  # max learning rate after warm up
+    min_lr: float = 5e-4  # min learning rate after decay
+    warmup_ratio: float = 0.0
 
     # prompt is less important than completion
     prompt_loss_weight: float = 0.0
@@ -72,7 +72,7 @@ class config:
 
     # AdamW optimizer
     use_paged_adamw: bool = False
-    weight_decay: float = 0.001
+    weight_decay: float = 0.00
     adam_betas: Tuple = (0.9, 0.95)
     adam_eps: float = 1e-8
     adam_fused: bool = True  # only applicable if not using bitsandbytes optimizer
@@ -81,7 +81,6 @@ class config:
     # dropout regularization
     embed_dropout: float = 0.0
     attn_dropout: float = 0.0
-    resid_dropout: float = 0.0
 
     gradient_checkpointing: bool = False
     mixed_precision: bool = True  # default to BF16, but if no native GPU support detected, will use FP16.
