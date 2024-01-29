@@ -56,20 +56,18 @@ def compute_finetune_loss(logits: torch.Tensor, targets: torch.Tensor, mask: tor
     assert logits.shape[0] == targets.shape[0] == mask.shape[0]
 
     B, T, *_ = logits.shape
-    loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), reduction='none')
+    losses = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), reduction='none')
 
-    assert not torch.any(torch.isnan(loss))
-    loss = loss.view(B, T)
-    assert loss.shape == mask.shape
+    assert not torch.any(torch.isnan(losses))
+    losses = losses.view(B, T)
+    assert losses.shape == mask.shape
 
     # loss mask is defined as: -1s are prompt tokens, 1s are completion tokens, and 0s the padding tokens
     # note here prompt is less important than completion
     weights = mask.float().masked_fill(mask == -1, prompt_loss_weight).masked_fill(mask == 1, completion_loss_weight)
-    loss *= weights
-
-    loss = torch.mean(loss)
-
-    return loss
+    losses *= weights  # [batch_size, seq_len]
+    losses = losses.mean(1)  # [batch_size]
+    return losses
 
 
 @torch.no_grad()
@@ -109,9 +107,8 @@ def train_step(model: Transformer, batch: Tuple[torch.Tensor], scaler: torch.cud
         media_hidden = media_hidden.to('cuda', non_blocking=True)
 
     output = model(x, prompt_media_pos=media_pos, prompt_media_hidden=media_hidden)
-
-    loss = loss_fn(output, y, loss_mask)
-
+    losses = loss_fn(output, y, loss_mask)
+    loss = losses.mean()
     scaled_loss = loss * loss_scale
 
     if scaler is not None:
@@ -120,7 +117,7 @@ def train_step(model: Transformer, batch: Tuple[torch.Tensor], scaler: torch.cud
         scaled_loss.backward()
 
     num_acc, num_samples = compute_metrics(output.detach(), y.detach(), loss_mask.detach())
-    tracker.update(loss.detach(), num_acc, num_samples)
+    tracker.update(losses.detach(), num_acc, num_samples)
 
 
 def update_step(
@@ -168,9 +165,9 @@ def run_validation_steps(model: Transformer, loader: DataLoader, steps: int, tra
 
         output = model(x, prompt_media_pos=media_pos, prompt_media_hidden=media_hidden)
 
-        loss = loss_fn(output, y, loss_mask)
+        losses = loss_fn(output, y, loss_mask)
         num_acc, num_samples = compute_metrics(output.detach(), y.detach(), loss_mask.detach())
-        tracker.update(loss.detach(), num_acc, num_samples)
+        tracker.update(losses.detach(), num_acc, num_samples)
 
         if inner_pbar is not None:
             inner_pbar.update(1)
@@ -432,13 +429,13 @@ def main(args: RunArgsType):
                 inner_pbar.update(1)
                 train_steps += 1
 
+                train_stats = train_tracker.get_dict(reset=True)
+
                 # logging training statistics
                 if train_steps % args.log_interval == 0:
-                    train_stats = train_tracker.get_dict()
                     train_stats['learning_rate'] = optimizer.param_groups[0]['lr']
                     train_stats['grad_norm'] = grad_norm.item()
                     log_statistics(tb_writer, train_steps, train_stats, True)
-                    train_tracker.reset()
 
                 # regular checkpointing
                 if args.ckpt_interval > 0 and (train_steps % args.ckpt_interval == 0 or train_steps == max_train_steps):
@@ -446,18 +443,17 @@ def main(args: RunArgsType):
 
                 # validation steps
                 if args.val_steps > 0 and (args.val_interval > 0 and train_steps % args.val_interval == 0 or train_steps == max_train_steps):
-                    val_tracker.reset()
                     model.eval()
                     run_validation_steps(model, val_loader, args.val_steps, val_tracker, loss_fn)
                     model.train()
 
-                    val_stats = val_tracker.get_dict()
+                    val_stats = val_tracker.get_dict(reset=True)
                     log_statistics(tb_writer, train_steps, val_stats, False)
 
                     # save best model
                     if val_stats['accuracy'] > best_val_accuracy:
                         best_val_accuracy = val_stats['accuracy']
-                        logger.info(f'New best validation accuracy: {val_stats["accuracy"]:.2f}%')
+                        logger.info(f'New best validation accuracy: {val_stats["accuracy"]:.2f}')
                         create_ckpt_func(model=model, full_path=os.path.join(args.ckpt_dir, f'lora_{args.model_type}-best.pth'))
 
     # show some training stats.

@@ -13,7 +13,7 @@ class config:
 
     # model type definition, the details (number of layers, heads etc.) are defined in model.py
     model_type: str = '7B'  # 7B, 13B, 70B
-    max_seq_len: int = 512  # use smaller sequence length to save GPU RAM
+    max_seq_len: int = 512
 
     pretrain_ckpt_file: str = '/home/michael/models/meta_llama2/llama-2-7b-chat/consolidated.pth'  # load pretrained checkpoint
     tokenizer_file: str = '/home/michael/models/meta_llama2/tokenizer.model'  # load tokenizer model
@@ -33,7 +33,7 @@ class config:
     train_batch_size: int = 8
     # accumulate gradients, where for step, the batch size is = train_batch_size x gradient_accum_steps
     gradient_accum_steps: int = 16
-    loss_scale: float = 1.0  # scale loss to account for gradient accumulation, we don't want to use a very small scale
+    loss_scale: float = 1.0 / 8  # scale loss to account for gradient accumulation, we don't want to use a very small scale
     val_interval: int = 200
     val_batch_size: int = 30
     val_steps: int = 40

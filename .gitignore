@@ -3,8 +3,7 @@
 *.zst
 *.assets/*.mp4
 datasets/*
-checkpoints/7b-finetune/*
-checkpoints/7b-pretrain/*
+checkpoints/*
 
 
 # logs
