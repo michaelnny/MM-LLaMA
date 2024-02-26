@@ -93,8 +93,11 @@ def compute_metrics(logits: torch.Tensor, targets: torch.Tensor, mask: torch.Ten
     return (num_accurate, num_samples)
 
 
-def train_step(model: Transformer, batch: Tuple[torch.Tensor], scaler: torch.cuda.amp.GradScaler, loss_scale: float, tracker: StatsTracker, loss_fn: Any) -> None:
+def train_step(model: Transformer, batch: Tuple[torch.Tensor], scaler: torch.cuda.amp.GradScaler, gradient_accum_steps: int, tracker: StatsTracker, loss_fn: Any) -> None:
     """Run a single training step, where we do a forward + backward passes, but do no update parameters"""
+
+    assert gradient_accum_steps >= 1
+
     x, y, loss_mask, media_pos, media_hidden = batch
     x, y, loss_mask = (
         x.to('cuda', non_blocking=True),
@@ -109,7 +112,7 @@ def train_step(model: Transformer, batch: Tuple[torch.Tensor], scaler: torch.cud
     output = model(x, prompt_media_pos=media_pos, prompt_media_hidden=media_hidden)
     losses = loss_fn(output, y, loss_mask)
     loss = losses.mean()
-    scaled_loss = loss * loss_scale
+    scaled_loss = loss / gradient_accum_steps
 
     if scaler is not None:
         scaler.scale(scaled_loss).backward()
@@ -236,7 +239,6 @@ def main(args: RunArgsType):
     assert args.num_epochs >= 1
     assert args.train_batch_size >= 1
     assert args.gradient_accum_steps >= 1
-    assert 0 < args.loss_scale <= 1
     assert args.log_interval >= 1
     assert args.val_interval >= 1
     assert args.val_steps >= 1
@@ -335,6 +337,7 @@ def main(args: RunArgsType):
         max_seq_len=args.max_seq_len,
         embed_dropout=args.embed_dropout,
         attn_dropout=args.attn_dropout,
+        llm_align_dropout=args.llm_align_dropout,
         gradient_checkpointing=args.gradient_checkpointing,
     )
 
@@ -421,7 +424,7 @@ def main(args: RunArgsType):
         val_tracker.reset()
 
         for iter, batch in enumerate(train_loader):  # for each batch in current epoch
-            train_step(model, batch, scaler, args.loss_scale, train_tracker, loss_fn)
+            train_step(model, batch, scaler, args.gradient_accum_steps, train_tracker, loss_fn)
 
             if iter % args.gradient_accum_steps == 0:
                 grad_norm = get_grad_norm_local(model)
@@ -455,6 +458,9 @@ def main(args: RunArgsType):
                         best_val_accuracy = val_stats['accuracy']
                         logger.info(f'New best validation accuracy: {val_stats["accuracy"]:.2f}')
                         create_ckpt_func(model=model, full_path=os.path.join(args.ckpt_dir, f'lora_{args.model_type}-best.pth'))
+
+    # create a final checkpoint
+    create_ckpt_func(model=model, full_path=os.path.join(args.ckpt_dir, f'lora_{args.model_type}-steps-{train_steps}.pth'))
 
     # show some training stats.
     logger.info(f'CUDA Memory Summary After Last training:\n{torch.cuda.memory_summary()}')

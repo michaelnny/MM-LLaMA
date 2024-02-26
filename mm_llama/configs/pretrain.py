@@ -33,7 +33,6 @@ class config:
     train_batch_size: int = 8
     # accumulate gradients, where for step, the batch size is = train_batch_size x gradient_accum_steps
     gradient_accum_steps: int = 16
-    loss_scale: float = 1.0 / 8  # scale loss to account for gradient accumulation, we don't want to use a very small scale
     val_interval: int = 200
     val_batch_size: int = 30
     val_steps: int = 40
@@ -61,10 +60,10 @@ class config:
     quant_4bit_type: str = 'nf4'  # only supports 'fp4' or 'nf4'
 
     # learning rate
-    init_lr: float = 5e-4  # initial learning rate
-    max_lr: float = 5e-4  # max learning rate after warm up
-    min_lr: float = 5e-4  # min learning rate after decay
-    warmup_ratio: float = 0.0
+    init_lr: float = 2e-5  # initial learning rate
+    max_lr: float = 2e-4  # max learning rate after warm up
+    min_lr: float = 2e-5  # min learning rate after decay
+    warmup_ratio: float = 0.02
 
     # prompt is less important than completion
     prompt_loss_weight: float = 0.0
@@ -76,11 +75,12 @@ class config:
     adam_betas: Tuple = (0.9, 0.95)
     adam_eps: float = 1e-8
     adam_fused: bool = True  # only applicable if not using bitsandbytes optimizer
-    grad_clip: float = 0.0
+    grad_clip: float = 10.0
 
     # dropout regularization
     embed_dropout: float = 0.0
     attn_dropout: float = 0.0
+    llm_align_dropout: float = 0.1
 
     gradient_checkpointing: bool = False
     mixed_precision: bool = True  # default to BF16, but if no native GPU support detected, will use FP16.

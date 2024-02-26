@@ -213,3 +213,4 @@ class Transformer(llama.Transformer):
 
         # Multi-modal LLM alignment projection layer, note the output embed size from ImageBind is always 1024
         self.llm_align_proj = nn.Linear(1024, params.dim, bias=False)
+        self.llm_align_drop = nn.Dropout(params.llm_align_dropout) if params.llm_align_dropout > 0 else nn.Identity()

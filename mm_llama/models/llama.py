@@ -46,6 +46,7 @@ class ModelArgs:
     # dropout regularization
     embed_dropout: float = 0.0
     attn_dropout: float = 0.0
+    llm_align_dropout: float = 0.0
 
     # others
     gradient_checkpointing: bool = False
@@ -249,6 +250,7 @@ class Transformer(nn.Module):
 
         # Multi-modal LLM alignment projection layer, note the output embed size from ImageBind is always 1024
         self.llm_align_proj = nn.Linear(1024, params.dim, bias=False)
+        self.llm_align_drop = nn.Dropout(params.llm_align_dropout) if params.llm_align_dropout > 0 else nn.Identity()
 
     def forward(
         self,
@@ -267,6 +269,7 @@ class Transformer(nn.Module):
             assert prompt_media_pos.shape[0] == prompt_media_hidden.shape[0]
 
             media_h = self.llm_align_proj(prompt_media_hidden.to(h.dtype))  # [bs, num_medias, params.dim]
+            media_h = self.llm_align_drop(media_h)
 
             # replace the media placeholder token with media embed from the output of LLM projection layer
             _B, _T = prompt_media_pos.shape

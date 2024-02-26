@@ -15,10 +15,10 @@ class BaseTracker:
         self.rank = rank
         self.reset()
 
-    def reset(self) -> None:
+    def reset(self) -> None:  # noqa: E704
         ...
 
-    def update(self, **args) -> None:
+    def update(self, **args) -> None:  # noqa: E704
         ...
 
     def get_dict(self, reset: bool) -> Dict:
